@@ -45,6 +45,16 @@ document.addEventListener('fullscreenchange', function(e) {
 function getMoreInfo(location){
   //console.log(location.location);
   var service = new google.maps.places.PlacesService(map);
+  var storedLocStr;
+  if (storedLocStr = localStorage.getItem(location.location)) {
+    var storedLoc = JSON.parse(storedLocStr);
+    location.name = storedLoc.name;
+    location.lat = storedLoc.lat;
+    location.lon = storedLoc.lon;
+    location.additionalInfo = storedLoc.additionalInfo;
+    makeMapMarker(location);
+    return;
+  }
   var request = {
     query: location.location
   };
@@ -67,7 +77,7 @@ function getMoreInfo(location){
       //console.log('loc name : ' + location.name );
       //console.log('addi info : ' + location.additionalInfo);
       makeMapMarker(location);
-      localStorage(location.location, JSON.stringify(location));
+      localStorage.setItem(location.location, JSON.stringify(location,['location', 'name', 'lat', 'lon','additionalInfo']));
     }
   }
 }
