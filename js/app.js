@@ -31,17 +31,14 @@ var ViewModel = function() {
     this.filterText = ko.observable('');
     this.locations  = ko.observableArray(Locations);
     this.filteredLocations = ko.observableArray(Locations);
-    ko.computed(function() {
+    this.filterText.subscribe(function(newValue){
         self.filteredLocations(self.locations().filter(function(item){
             var containsStr = item.location.indexOf(self.filterText()) > -1;
-            if (item.marker) {
-                containsStr ?  item.marker.setMap(map) : item.marker.setMap(null);
-            }
+            containsStr ?  item.marker.setMap(map) : item.marker.setMap(null);
             return containsStr;
         }));
     });
 
-    //this.filteredLocations.subscribe();
     this.getFilteredLocations = function() {
         return self.filteredLocations();
     }
