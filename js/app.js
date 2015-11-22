@@ -1,18 +1,22 @@
 var markers = [];
 var mapViewModel;
 var Locations = [];
-var Location = function(location){
+function Location(location){
     this.location = location;
-    this.name;
-    this.lat;
-    this.lon;
-    this.marker;
-    this.additionalInfo;
-    getMoreInfo(this);
-    this.displayInfoWindow = function(loc) {
-        openInfoView(loc);
-    };
+    this.name = '';
+    this.lat = 0;
+    this.lon = 0;
+    this.marker = null;
+    this.additionalInfo = '';
 }
+Location.prototype = {
+    collectMoreInfo : function() {
+        getMoreInfo(this);
+    },
+    displayInfoWindow : function(loc) {
+        openInfoView(loc);
+    }
+};
 function setMapOnAll(map) {
   for (var i = 0; i < markers.length; i++) {
     markers[i].setMap(map);
@@ -47,6 +51,7 @@ window.addEventListener('load', function() {
     var locations = getLocations();
     locations.forEach(function(item){
         var loc = new Location(item);
+        loc.collectMoreInfo();
         Locations.push(loc);
     });
     mapViewModel = new ViewModel();

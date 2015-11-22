@@ -1,60 +1,45 @@
 /*
-This file contains all of the code required to display the google map and locations. 
+This file contains all of the code required 
+1. To display the google map and locations.
+2. To fetch additional information about locations
+3. To persist and read location data to/from localStorage 
 */
 
-var internationalizeButton = '<button>Internationalize</button>';
-var googleMap = '<div id="map"></div>';
-var infoWindow = new google.maps.InfoWindow({
-});
-var map;    // declares a global map variable
+var map;    //The global map variable
+//only one infoWindow can be present on the map. The var "infoWindow" will hold the visible infoWindow.
+var infoWindow = new google.maps.InfoWindow();
 
-/*
-Start here! initializeMap() is called when page is loaded.
-*/
+//initializes the google map. The global variable "map" will refer to the google map.
 function initializeMap() {
-
-  var locations;
-
   var mapOptions = {
-    zoom: 16,
+    zoom: 8,
     disableDefaultUI: true
   };
 
-  // This next line makes `map` a new Google Map JavaScript Object and attaches it to
-  // <div id="map">, which is appended as part of an exercise late in the course.
-  map = new google.maps.Map(document.querySelector('#mapdiv'), mapOptions);
+  map = new google.maps.Map(document.querySelector('#mapdiv'), mapOptions); 
   window.mapBounds = new google.maps.LatLngBounds();
 }
 
-
-
-// Vanilla JS way to listen for resizing of the window
-// and adjust map bounds
+//listen for resizing of the window  and adjust map bounds
 window.addEventListener('resize', function(e) {
   // Make sure the map bounds get updated on page resize
   map.fitBounds(mapBounds);
   map.setCenter(mapBounds.getCenter());
 });
 
-document.addEventListener('fullscreenchange', function(e) {
-  // Make sure the map bounds get updated on page resize
-  map.fitBounds(mapBounds);
-  map.setCenter(mapBounds.getCenter());
-});
-
 function getMoreInfo(location){
-  //console.log(location.location);
-  var service = new google.maps.places.PlacesService(map);
   var storedLocStr;
+  //check if the location details can be retrieved from local storage.
   if (storedLocStr = localStorage.getItem(location.location)) {
+    //location detail available in local storage. Populate the "location" object with detail.
     var storedLoc = JSON.parse(storedLocStr);
-    location.name = storedLoc.name;
-    location.lat = storedLoc.lat;
-    location.lon = storedLoc.lon;
-    location.additionalInfo = storedLoc.additionalInfo;
+    for (var i in storedLoc) {
+      location[i] = storedLoc[i];
+    }
     makeMapMarker(location);
     return;
   }
+  var service = new google.maps.places.PlacesService(map);
   var request = {
     query: location.location
   };
@@ -66,36 +51,41 @@ function getMoreInfo(location){
     //console.log('status : ' + status);
     if (status == google.maps.places.PlacesServiceStatus.OK) {
       location.lat = placeData[0].geometry.location.lat();  // latitude from the place service
-      //console.log(location.location);
       //console.log('location lat :' + location.lat);
       location.lon = placeData[0].geometry.location.lng();  // longitude from the place service
       location.name = placeData[0].formatted_address; 
       getAdditionalInfo(location.lat, location.lon, processAdditionalInfo);
     }
     function processAdditionalInfo(info) {
+      var locFieldFilter = [];
       location.additionalInfo = info.response.groups[0].items[0].venue.name;
       //console.log('loc name : ' + location.name );
       //console.log('addi info : ' + location.additionalInfo);
       makeMapMarker(location);
-      localStorage.setItem(location.location, JSON.stringify(location,['location', 'name', 'lat', 'lon','additionalInfo']));
+      for (var i in location) {
+        if (location.hasOwnProperty(i) && (typeof location[i] !== 'object') && (typeof location[i] !== 'function')) {
+          locFieldFilter.push(i);
+        }
+      }
+      localStorage.setItem(location.location, JSON.stringify(location, locFieldFilter));
     }
   }
 }
 
 function  getAdditionalInfo(lat,lon,callback) {
-    var request = new XMLHttpRequest();
-    var baseUrl = 'https://api.foursquare.com/v2/venues/explore';
-    var clientId = 'YAFHOBF2NGR5UJJS4NLNWXCNZBGEMQUBCFA00SFRZLIRM5JO';
-    var clientSecret = 'CX2WYTMBELLDEAVQJB3BFFPDWL315NPQK1GYJKL1JZRPBBZX';
-    var url = baseUrl + '?' + 'll' + '=' + lat + ',' + lon + '&' + 'client_id' +  '=' + clientId + '&' + 'client_secret' + '=' + clientSecret + '&v=20151118';
-    request.open('GET', url);
-    request.onreadystatechange = function() {
-      if (request.readyState === 4) {
-        var data = JSON.parse(request.responseText);
-        callback(data);
-      } 
-    }
-    request.send(null);
+  var request = new XMLHttpRequest();
+  var baseUrl = 'https://api.foursquare.com/v2/venues/explore';
+  var clientId = 'YAFHOBF2NGR5UJJS4NLNWXCNZBGEMQUBCFA00SFRZLIRM5JO';
+  var clientSecret = 'CX2WYTMBELLDEAVQJB3BFFPDWL315NPQK1GYJKL1JZRPBBZX';
+  var url = baseUrl + '?' + 'll' + '=' + lat + ',' + lon + '&' + 'client_id' +  '=' + clientId + '&' + 'client_secret' + '=' + clientSecret + '&v=20151118';
+  request.open('GET', url);
+  request.onreadystatechange = function() {
+    if (request.readyState === 4) {
+      var data = JSON.parse(request.responseText);
+      callback(data);
+    } 
+  }
+  request.send(null);
 }
 
 function makeMapMarker(loc) {
@@ -132,12 +122,12 @@ function makeMapMarker(loc) {
 
 }
 function openInfoView(loc) {
-    infoWindow.close();
-    map.setCenter(window.mapBounds.getCenter());
-    var htmlString = '<div>' + loc.name + '</div>' + '<p>' + loc.additionalInfo + '</p>';
-    infoWindow.setContent(htmlString);
-    loc.marker.setAnimation(google.maps.Animation.BOUNCE);
-    setTimeout(function() { loc.marker.setAnimation(null);},1000);
-    infoWindow.open(map, loc.marker);
+  infoWindow.close();
+  map.setCenter(window.mapBounds.getCenter());
+  var htmlString = '<div>' + loc.name + '</div>' + '<p>' + loc.additionalInfo + '</p>';
+  infoWindow.setContent(htmlString);
+  loc.marker.setAnimation(google.maps.Animation.BOUNCE);
+  setTimeout(function() { loc.marker.setAnimation(null);},1000);
+  infoWindow.open(map, loc.marker);
 }
 
