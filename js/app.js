@@ -29,28 +29,37 @@ function getLocations(){
 var ViewModel = function() {
     var self = this;
     this.filterText = ko.observable('');
-    this.locations  = ko.observableArray(Locations);
-    this.filteredLocations = ko.observableArray(Locations);
-    this.filterText.subscribe(function(newValue){
+    //this.locations  = ko.observableArray(Locations);
+    this.locations  = ko.observableArray();
+    this.filteredLocations = ko.observableArray(this.locations());
+    
+
+    this.setFilteredLocations = function() {
         self.filteredLocations(self.locations().filter(function(item){
             var containsStr = item.location.indexOf(self.filterText()) > -1;
-            containsStr ?  item.marker.setMap(map) : item.marker.setMap(null);
+            if (item.marker) {
+                containsStr ?  item.marker.setMap(map) : item.marker.setMap(null);
+            }
             return containsStr;
         }));
-    });
-
-    this.getFilteredLocations = function() {
-        return self.filteredLocations();
+        //return self.filteredLocations();
     }
+    this.filterText.subscribe(self.setFilteredLocations);
+    this.locations.subscribe(self.setFilteredLocations);
 }
 window.addEventListener('load', function() {
+    mapViewModel = new ViewModel();
+    ko.applyBindings(mapViewModel);
     initializeMap();
     var locations = getLocations();
+    var baseLocation = 'Chennai, TamilNadu, India';
+    getPlacesAndDetail(baseLocation);
+    /*
     locations.forEach(function(item){
         var loc = new Location(item);
         loc.collectMoreInfo();
-        Locations.push(loc);
+        //Locations.push(loc);
+        mapViewModel.locations.push(loc);
     });
-    mapViewModel = new ViewModel();
-    ko.applyBindings(mapViewModel);
+    */
 });
