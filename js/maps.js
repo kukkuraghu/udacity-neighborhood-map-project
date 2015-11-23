@@ -21,11 +21,26 @@ function initializeMap() {
 }
 
 function getPlacesAndDetail(baseLoc){
-  getAdditionalInfo(13.089030, 80.266793, processInfo);
-  function processInfo(result) {
-    //info.response.groups[0].items[0].venue.name
+  var  locs;
+  if (locs = JSON.parse(localStorage.getItem(baseLoc))){
+    generateLocation(locs);
+    return;
+  }
+  getAdditionalInfo(baseLoc, 13.089030, 80.266793, processInfo);
+  function generateLocation(locs) {
+    var noOfLocs = locs.length;
+    for (i = 0; i < noOfLocs; i++) {
+      var loc = new Location();
+      for (var j in locs[i]) {
+        loc[j] = locs[i][j];
+      }
+      loc.marker    = makeMapMarker(loc);
+      mapViewModel.locations.push(loc);
+    }
+  }
+  function processInfo(error, result) {
+    if (error) return;
     var resultLength = result.response.groups[0].items.length;
-    console.log(resultLength);
     for (var i = 0; i < resultLength; i++) {
         var item = result.response.groups[0].items[i];
         var loc = new Location();
@@ -38,36 +53,14 @@ function getPlacesAndDetail(baseLoc){
         loc.marker    = makeMapMarker(loc);
         mapViewModel.locations.push(loc);
     }
-  }
-  /*
-  var service = new google.maps.places.PlacesService(map);
-  var request = {
-    location : new google.maps.LatLng(13.089030, 80.266793),
-    radius : 10000,
-    query : 'park'
-  };
-  service.textSearch(request, callback);
-  function callback(result, status) {
-    if (status == google.maps.places.PlacesServiceStatus.OK) {
-      var resultLength = result.length;
-      var loc = new Location();
-      for (var i = 0; i < resultLength; i++) {
-        var loc = new Location();
-        loc.location  = result[i].name;
-        loc.name      = result[i].formatted_address;
-        loc.lat       = result[i].geometry.location.lat();
-        loc.lon       = result[i].geometry.location.lng();
-        loc.marker    = makeMapMarker(loc);
-        mapViewModel.locations.push(loc);
+    localStorage.setItem(baseLoc, JSON.stringify(mapViewModel.locations(), replacer));
+    function replacer(i, obj) {
+      if (i == 'marker') {
+        return null;
       }
-      
-      //location.lat = placeData[0].geometry.location.lat();  // latitude from the place service
-      //location.lon = placeData[0].geometry.location.lng();  // longitude from the place service
-      //location.name = placeData[0].formatted_address; 
-      //getAdditionalInfo(location.lat, location.lon, processAdditionalInfo);
+      return obj;
     }
   }
-  */
 }
 //listen for resizing of the window  and adjust map bounds
 window.addEventListener('resize', function(e) {
@@ -75,63 +68,24 @@ window.addEventListener('resize', function(e) {
   map.fitBounds(mapBounds);
   map.setCenter(mapBounds.getCenter());
 });
-
-function getMoreInfo(location){
-  var storedLocStr;
-  //check if the location details can be retrieved from local storage.
-  if (storedLocStr = localStorage.getItem(location.location)) {
-    //location detail available in local storage. Populate the "location" object with detail.
-    var storedLoc = JSON.parse(storedLocStr);
-    for (var i in storedLoc) {
-      location[i] = storedLoc[i];
-    }
-    makeMapMarker(location);
-    return;
-  }
-  var service = new google.maps.places.PlacesService(map);
-  var request = {
-    query: location.location
-  };
-      // Actually searches the Google Maps API for location data and runs the callback
-      // function with the search results after each search.
-  //console.log('request query location : ' + request.query);
-  service.textSearch(request, callback);
-  function callback(placeData, status) {
-    //console.log('status : ' + status);
-    if (status == google.maps.places.PlacesServiceStatus.OK) {
-      location.lat = placeData[0].geometry.location.lat();  // latitude from the place service
-      //console.log('location lat :' + location.lat);
-      location.lon = placeData[0].geometry.location.lng();  // longitude from the place service
-      location.name = placeData[0].formatted_address; 
-      getAdditionalInfo(location.lat, location.lon, processAdditionalInfo);
-    }
-    function processAdditionalInfo(info) {
-      var locFieldFilter = [];
-      location.additionalInfo = info.response.groups[0].items[0].venue.name;
-      //console.log('loc name : ' + location.name );
-      //console.log('addi info : ' + location.additionalInfo);
-      makeMapMarker(location);
-      for (var i in location) {
-        if (location.hasOwnProperty(i) && (typeof location[i] !== 'object') && (typeof location[i] !== 'function')) {
-          locFieldFilter.push(i);
-        }
-      }
-      localStorage.setItem(location.location, JSON.stringify(location, locFieldFilter));
-    }
-  }
-}
-
-function  getAdditionalInfo(lat,lon,callback) {
+function  getAdditionalInfo(place, lat, lon, callback) {
   var request = new XMLHttpRequest();
   var baseUrl = 'https://api.foursquare.com/v2/venues/explore';
   var clientId = 'YAFHOBF2NGR5UJJS4NLNWXCNZBGEMQUBCFA00SFRZLIRM5JO';
   var clientSecret = 'CX2WYTMBELLDEAVQJB3BFFPDWL315NPQK1GYJKL1JZRPBBZX';
-  var url = baseUrl + '?' + 'll' + '=' + lat + ',' + lon + '&' + 'client_id' +  '=' + clientId + '&' + 'client_secret' + '=' + clientSecret + '&v=20151118';
+  var queryParam1 = place? 'near=' + place : 'll' + '=' + lat + ',' + lon;
+  var queryParam2 = 'client_id=' + clientId;
+  var queryParam3 = 'client_secret=' + clientSecret;
+  var queryParam4 = 'radius=' + 2000;
+  var queryParam5 = 'v=20151118';
+  var url = baseUrl + '?' + queryParam1 + '&' + queryParam2 + '&' + queryParam3 + '&' + queryParam4 + '&' + queryParam5; 
   request.open('GET', url);
   request.onreadystatechange = function() {
+    var requestError = false;
+    var data;
     if (request.readyState === 4) {
-      var data = JSON.parse(request.responseText);
-      callback(data);
+      request.status === 200? data = JSON.parse(request.responseText) : requestError = true;
+      callback(requestError, data);
     } 
   }
   request.send(null);

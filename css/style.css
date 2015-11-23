@@ -1,23 +1,50 @@
 html, body { height: 100%; margin: 0; padding: 0; }
-#mapdiv { height: 100%; }
-#layout { height: 100%; }
-#main { height: 100%; }
-.content { height: 100%; }
-.menu {
-    float   : left;
+
+.header-item {
+    height:26px;
 }
-.flexi-box {
-    -webkit-box-sizing: border-box ! important;
-    -moz-box-sizing: border-box ! important;
-    box-sizing: border-box ! important;
+
+#header-label {
+    background-color : blue; 
+    width:4em;
+}
+
+#header-search {
+    width:100%;
+}
+
+#layout { 
+    height: 100%; 
+    display:flex;
 }
 
 #menu {
     background-color: rgb(25,24,24);
+    height  : 100%;
 }
 
 .pure-menu {
     font-family: sans-serif;
     font-weight: 100;
     letter-spacing: 0.01em;
+    height : 100%;
+}
+
+#main { 
+    height: 100%; 
+    width : 100%;
+}
+
+.content { height: 100%; }
+
+#mapdiv { height: 100%; }
+
+.flexi-box {
+    -webkit-box-sizing: border-box ! important;
+    -moz-box-sizing: border-box ! important;
+    box-sizing: border-box ! important;
+}
+
+.flex-div {
+    display : flex;
 }
