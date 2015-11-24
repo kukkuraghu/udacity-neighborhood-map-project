@@ -4,15 +4,15 @@
         <meta charset = 'utf-8'/>
         <meta http-equiv='X-UA-Compatible' content='IE=edge'>
         <meta name='viewport' content='width=device-width, initial-scale=1'>
-        <link rel='stylesheet' href='http://yui.yahooapis.com/pure/0.6.0/pure-min.css'>
+        <!-- <link rel='stylesheet' href='http://yui.yahooapis.com/pure/0.6.0/pure-min.css'> -->
+        <link rel='stylesheet' href='css/menus-min.css'>
         <link rel='stylesheet' href='css/style.css'>
         <script type='text/javascript' src='http://maps.googleapis.com/maps/api/js?libraries=places'> </script>
-        <script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/knockout/3.3.0/knockout-min.js'>
-        </script>
-        <title></title>
+        <script type='text/javascript' src='js/ko.js'></script>
+        <title>Gotcha</title>
     </head>
     <body>
-        <div class='flex-div'>
+        <div class='flex-div' >
             <button class='flexi-box header-item'  data-bind='click : toggleMenuVisibility'>
                 <img src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAU0lEQVQ4T2NkoBAwUqifgWoGnGRgYDAj0TUgPRYwFxwHcUg04BgDA4M11bxAouUI5TAXUBwGJxgYGMxJdMYgC4MzDAwMxiR6ASUdDIMwINH7COUAalAMEcvSqK4AAAAASUVORK5CYII=' alt=''>
             </button>
@@ -24,7 +24,7 @@
                 <div class='pure-menu pure-menu-scrollable'>
                     <ul class='pure-menu-list' data-bind='foreach:filteredLocations'>
                         <li  class='pure-menu-item'>
-                            <a href='#' class='pure-menu-link'  data-bind='text: location, click : displayInfoWindow'>
+                            <a href='#' class='pure-menu-link'  data-bind='text: name, click : displayInfoWindow'>
                             </a>
                         </li>
                     </ul>
@@ -33,8 +33,7 @@
             <div id='main'>
                 <div class='content'>
                     <!-- google map routines require div with id 'mapdiv' -->
-                    <div id='mapdiv'>
-                    </div>
+                    <div id='mapdiv'></div>
                 </div>
             </div>
         </div>
