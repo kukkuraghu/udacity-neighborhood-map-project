@@ -6,14 +6,41 @@ This file contains all of the code required
 3. To persist and read locations data to/from localStorage 
 */
 
-var map;    //The global map variable
+var map;    //The global map variable 
+var infoWindow; //The globale variable to hold infoWindow. Only one infoWindow can be present on the map. 
 
-//only one infoWindow can be present on the map. 
-//The var "infoWindow" will hold the visible infoWindow.
-var infoWindow = new google.maps.InfoWindow();
+//Constructor to create location object
+function Location(loc){ 
+    //if an object with initial values are provided, initialize with that object
+    if (loc) {
+        for (var i in loc) {
+            if (loc.hasOwnProperty(i)) {
+                this[i] = loc[i];    
+            }
+        }
+        this.marker = makeMapMarker(this);
+    }
+    else { //initialize to default values
+        this.name = '';
+        this.address = '';
+        this.lat = 0;
+        this.lon = 0;
+        this.phone = '';
+        this.category = '';
+        this.marker = null;
+    }
+    
+}
+//displays InfoWindow associated with the marker of the location loc
+Location.prototype = {
+    displayInfoWindow : function(loc) {
+        openInfoView(loc);
+    }
+};
 
 //initializes the google map. The global variable "map" will refer to the google map.
 function initializeMap() {
+  infoWindow = new google.maps.InfoWindow();
   var mapOptions = {
     zoom: 10,
     disableDefaultUI: true
@@ -126,7 +153,7 @@ function  getLocations(place, callback) {
       request.status === 200? data = JSON.parse(request.responseText) : requestError = true;
       callback(requestError, data);
     } 
-  }
+  };
   request.send(null);
 }
 
@@ -200,6 +227,6 @@ function getGeocode(place, callback){
       request.status === 200? data = JSON.parse(request.responseText) : requestError = true;
       callback(requestError, data);
     } 
-  }
+  };
   request.send(null);
 }
